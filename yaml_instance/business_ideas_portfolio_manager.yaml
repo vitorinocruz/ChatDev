@@ -1,0 +1,237 @@
+version: 0.0.0
+vars:
+  API_KEY: ""
+  BASE_URL: ""
+  MODEL_NAME: gpt-4o
+  PORTFOLIO_GOAL: Reach €10k MRR by Month 18
+  WEEKLY_HOURS: "15"
+  CAPITAL_BUDGET: "300"
+  RISK_PROFILE: balanced
+  FOCUS_PHASE: "1"
+  TASK_PROMPT: >-
+    Build this week's execution plan for my selected ideas and produce clear
+    next actions with KPIs, blockers, and risk controls.
+graph:
+  id: business_ideas_portfolio_manager
+  description: >-
+    Zero-code multi-agent workflow for business-idea portfolio prioritization,
+    planning, execution tracking, and review.
+  log_level: INFO
+  is_majority_voting: false
+  nodes:
+    - id: user_task
+      type: literal
+      config:
+        role: user
+        content: ${TASK_PROMPT}
+      description: User objective for this run.
+      context_window: 0
+      dynamic: null
+
+    - id: operating_constraints
+      type: literal
+      config:
+        role: user
+        content: >-
+          Operating constraints:
+          - Portfolio goal: ${PORTFOLIO_GOAL}
+          - Weekly hours: ${WEEKLY_HOURS}
+          - Capital budget (EUR): ${CAPITAL_BUDGET}
+          - Risk profile: ${RISK_PROFILE}
+          - Focus phase: ${FOCUS_PHASE}
+      description: Runtime constraints injected by YAML variables.
+      context_window: 0
+      dynamic: null
+
+    - id: portfolio_strategist
+      type: agent
+      config:
+        name: ${MODEL_NAME}
+        provider: openai
+        role: >-
+          You are the Portfolio Strategist. Prioritize business ideas by
+          time-to-revenue, complexity, risk concentration, and synergy.
+          Output a ranked list, reasoning, and a 90-day focus recommendation.
+        base_url: ${BASE_URL}
+        api_key: ${API_KEY}
+        params:
+          temperature: 0.3
+        tooling: null
+        thinking: null
+        memories: []
+        retry: null
+      description: Portfolio-level decision maker.
+      context_window: 0
+      dynamic: null
+
+    - id: execution_planner
+      type: agent
+      config:
+        name: ${MODEL_NAME}
+        provider: openai
+        role: >-
+          You are the Execution Planner. Convert strategy into a realistic
+          7-day sprint plan with task sequencing, dependencies, and completion
+          criteria.
+        base_url: ${BASE_URL}
+        api_key: ${API_KEY}
+        params:
+          temperature: 0.2
+        tooling: null
+        thinking: null
+        memories: []
+        retry: null
+      description: Weekly plan generator.
+      context_window: 0
+      dynamic: null
+
+    - id: finance_risk_reviewer
+      type: agent
+      config:
+        name: ${MODEL_NAME}
+        provider: openai
+        role: >-
+          You are the combined Finance and Risk Reviewer. Stress-test the plan,
+          identify cashflow and platform risks, and propose mitigations.
+          Provide KPI targets and guardrails.
+        base_url: ${BASE_URL}
+        api_key: ${API_KEY}
+        params:
+          temperature: 0.2
+        tooling: null
+        thinking: null
+        memories: []
+        retry: null
+      description: Financial and risk quality gate.
+      context_window: 0
+      dynamic: null
+
+    - id: operator_report
+      type: agent
+      config:
+        name: ${MODEL_NAME}
+        provider: openai
+        role: >-
+          You are the Operations Reporter. Merge all prior outputs into one
+          concise, execution-ready report using these sections exactly:
+          1) Priority Decision
+          2) Next 7 Days Plan
+          3) KPI Targets
+          4) Top 5 Risks + Mitigations
+          5) Blockers & Required Decisions
+          6) Monday/Wednesday/Friday cadence
+        base_url: ${BASE_URL}
+        api_key: ${API_KEY}
+        params:
+          temperature: 0.1
+        tooling: null
+        thinking: null
+        memories: []
+        retry: null
+      description: Single final artifact for execution.
+      context_window: 0
+      dynamic: null
+
+  edges:
+    - from: user_task
+      to: portfolio_strategist
+      trigger: true
+      condition: "true"
+      carry_data: true
+      keep_message: false
+      clear_context: false
+      clear_kept_context: false
+      process: null
+      dynamic: null
+
+    - from: operating_constraints
+      to: portfolio_strategist
+      trigger: true
+      condition: "true"
+      carry_data: true
+      keep_message: false
+      clear_context: false
+      clear_kept_context: false
+      process: null
+      dynamic: null
+
+    - from: portfolio_strategist
+      to: execution_planner
+      trigger: true
+      condition: "true"
+      carry_data: true
+      keep_message: false
+      clear_context: false
+      clear_kept_context: false
+      process: null
+      dynamic: null
+
+    - from: operating_constraints
+      to: execution_planner
+      trigger: true
+      condition: "true"
+      carry_data: true
+      keep_message: false
+      clear_context: false
+      clear_kept_context: false
+      process: null
+      dynamic: null
+
+    - from: execution_planner
+      to: finance_risk_reviewer
+      trigger: true
+      condition: "true"
+      carry_data: true
+      keep_message: false
+      clear_context: false
+      clear_kept_context: false
+      process: null
+      dynamic: null
+
+    - from: operating_constraints
+      to: finance_risk_reviewer
+      trigger: true
+      condition: "true"
+      carry_data: true
+      keep_message: false
+      clear_context: false
+      clear_kept_context: false
+      process: null
+      dynamic: null
+
+    - from: portfolio_strategist
+      to: operator_report
+      trigger: true
+      condition: "true"
+      carry_data: true
+      keep_message: false
+      clear_context: false
+      clear_kept_context: false
+      process: null
+      dynamic: null
+
+    - from: execution_planner
+      to: operator_report
+      trigger: true
+      condition: "true"
+      carry_data: true
+      keep_message: false
+      clear_context: false
+      clear_kept_context: false
+      process: null
+      dynamic: null
+
+    - from: finance_risk_reviewer
+      to: operator_report
+      trigger: true
+      condition: "true"
+      carry_data: true
+      keep_message: false
+      clear_context: false
+      clear_kept_context: false
+      process: null
+      dynamic: null
+
+  memory: []
+  initial_instruction: >-
+    Use uploaded MEMORY.MD and business idea artifacts as grounding context.
