@@ -50,6 +50,26 @@ A local app with 4 operational modes:
 
 ---
 
+
+## Ready-to-run workflow template in this repo
+- File: `yaml_instance/business_ideas_portfolio_manager.yaml`
+- Purpose: A concrete multi-agent chain you can run today in Launch mode.
+- Nodes: Portfolio Strategist → Execution Planner → Finance/Risk Reviewer → Operator Report.
+- Attachments to upload per run: `MEMORY.MD` plus the specific idea `.docx` files for current focus.
+
+### Quick start (local)
+1. Configure environment:
+   - `cp .env.example .env`
+   - set `API_KEY` and `BASE_URL`
+2. Start app:
+   - `make dev`
+3. In Web Console Launch tab:
+   - select `business_ideas_portfolio_manager.yaml`
+   - upload `MEMORY.MD` and chosen idea docs
+   - run with prompt: `Generate this week's plan under my constraints.`
+
+---
+
 ## Workflow set to create (suggested)
 
 ## WF-01: Portfolio Intake & Structuring
